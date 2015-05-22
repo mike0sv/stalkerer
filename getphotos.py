@@ -4,6 +4,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 girls = pickle.load(open('girls', 'r'))
+print len(girls)
 #girls=[46849]
 photos={}
 for i, girl in enumerate(girls):
@@ -22,5 +23,5 @@ for i, girl in enumerate(girls):
                     pass
 
 
-print photos
+print len(photos)
 pickle.dump(photos, open('photos', 'w'))

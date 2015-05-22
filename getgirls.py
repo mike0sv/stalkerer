@@ -3,12 +3,25 @@ import pickle
 import warnings
 warnings.filterwarnings("ignore")
 
-group = call_api('groups.getMembers', group_id=94018597)
-users = group['users']
-print users
+
+def get_group_users(group):
+    users = []
+    new_users = call_api('groups.getMembers', group_id=group)['users']
+    offset = 1000
+    while len(new_users) > 0:
+        users = users + new_users
+        new_users = call_api('groups.getMembers', group_id=group, offset=offset)['users']
+        offset += 1000
+
+    return users
+
+users = get_group_users('tinthelp')
+print len(users)
 
 user_info = []
-for chunk in [users[x:x+300] for x in xrange(0, len(users), 100)]:
+ch = 300
+chunks = [users[x*ch:(x+1)*ch] for x in xrange(len(users) / ch)] + [users[ch * (len(users) / ch):]]
+for chunk in chunks:
     chunk_info = call_api('users.get', user_ids=','.join(map(str, chunk)), fields='sex')
     user_info += chunk_info
 
