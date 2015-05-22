@@ -1,4 +1,4 @@
-import requests, json, pickle
+import requests
 
 API = 'https://api.vk.com/method/'
 

@@ -1,63 +1,95 @@
-import tkinter
-from PIL import ImageTk, Image
-import os, time
+import os
 import pygame
+import pickle
 
-girls = {}
-for fold in os.listdir('./data'):
-    if os.path.isdir('./data/' + fold):
-        girls[fold] = []
+def load_from_fs():
+    girls = {}
+    for fold in os.listdir('./data'):
+        if os.path.isdir('./data/' + fold):
+            girls[fold] = []
 
-for girl in girls:
-    for file in os.listdir('./data/' + girl):
-        if not os.path.isdir('./data/' + girl + '/' + file):
-            girls[girl].append('./data/' + girl + '/' + file)
-    if len(girls[girl]) == 0:
-        girls[girl].append(None)
+    for girl in girls:
+        for file in os.listdir('./data/' + girl):
+            if not os.path.isdir('./data/' + girl + '/' + file):
+                girls[girl].append('./data/' + girl + '/' + file)
+        if len(girls[girl]) == 0:
+            girls[girl].append(None)
 
+    return girls
 
-girl = 0
-photo = 0
-size_x, size_y = 800, 600
-done = False
+def load_from_file(file):
+    with open(file, 'r') as fin:
+        return pickle.load(fin)
 
-pygame.init()
-window = pygame.display.set_mode((size_x, size_y))
+def save_to_file(file, obj):
+    with open(file, 'w') as fout:
+        pickle.dump(fout)
 
-img = pygame.image.load(girls[girls.keys()[girl]][photo]).convert()
-upd = False
-window.blit(img, (0, 0))
-while not done:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
+def discard(girls, bad):
+    for key in bad:
+        del girls[key]
 
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_s:
-                girl = (girl - 1) % len(girls)
-                photo = 0
+def main():
+    girl = 0
+    photo = 0
+    size_x, size_y = 800, 600
+    done = False
+    girls = load_from_fs()
+    good = {}
+    bad = {}
+    pygame.init()
+    window = pygame.display.set_mode((size_x, size_y))
+
+    img = pygame.image.load(girls[girls.keys()[girl]][photo]).convert()
+    upd = False
+    window.blit(img, (0, 0))
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+
+            if event.type == pygame.KEYUP:
                 upd = True
-            elif event.key == pygame.K_w:
-                girl = (girl + 1) % len(girls)
-                photo = 0
-                upd = True
-            elif event.key == pygame.K_a:
-                photo = (photo + 1) % len(girls[girls.keys()[girl]])
-                upd = True
-            elif event.key == pygame.K_d:
-                photo = (photo + 1) % len(girls[girls.keys()[girl]])
-                upd = True
+                if event.key == pygame.K_s:
+                    girl = (girl - 1) % len(girls)
+                    photo = 0
+                elif event.key == pygame.K_w:
+                    girl = (girl + 1) % len(girls)
+                    photo = 0
+                elif event.key == pygame.K_a:
+                    photo = (photo + 1) % len(girls[girls.keys()[girl]])
+                elif event.key == pygame.K_d:
+                    photo = (photo + 1) % len(girls[girls.keys()[girl]])
+                elif event.key == pygame.K_g:
+                    good[girls.keys()[girl]] = girls[girls.keys()[girl]]
+                    photo = 0
+                    del girls[girls.keys()[girl]]
+                elif event.key == pygame.K_b:
+                    good[girls.keys()[girl]] = girls[girls.keys()[girl]]
+                    del girls[girls.keys()[girl]]
+                    photo = 0
+                elif event.key == pygame.K_u:
+                    good = load_from_file('good')
+                    bad = load_from_file('bad')
+                    discard(girls, good)
+                    discard(girls, bad)
+                elif event.key == pygame.K_f:
+                    save_to_file('good', good)
+                    save_to_file('bad', bad)
+                    save_to_file('remains', girls)
+                elif event.key == pygame.K_r:
+                    girls = load_from_file('remains')
 
-        if upd:
-            print girl, photo, girls.keys()[girl]
-            try:
-                upd = False
-                img = pygame.image.load(girls[girls.keys()[girl]][photo]).convert()
-                window.blit(img, (0, 0))
-            except Exception as e:
-                print e
+            if upd:
+                try:
+                    upd = False
+                    print girl, photo, girls.keys()[girl]
+                    img = pygame.image.load(girls[girls.keys()[girl]][photo]).convert()
+                    window.blit(img, (0, 0))
+                except Exception as e:
+                    print e
 
 
-    pygame.display.update()
+        pygame.display.update()
 
-#img = tkinter.PhotoImage(file=girls[girls.keys()[girl]][photo])
+main()
