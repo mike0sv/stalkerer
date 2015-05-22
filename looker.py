@@ -23,11 +23,12 @@ def load_from_file(file):
 
 def save_to_file(file, obj):
     with open(file, 'w') as fout:
-        pickle.dump(fout)
+        pickle.dump(obj, fout)
 
 def discard(girls, bad):
     for key in bad:
-        del girls[key]
+        if key in girls:
+            del girls[key]
 
 def main():
     girl = 0
@@ -65,7 +66,7 @@ def main():
                     photo = 0
                     del girls[girls.keys()[girl]]
                 elif event.key == pygame.K_b:
-                    good[girls.keys()[girl]] = girls[girls.keys()[girl]]
+                    bad[girls.keys()[girl]] = girls[girls.keys()[girl]]
                     del girls[girls.keys()[girl]]
                     photo = 0
                 elif event.key == pygame.K_u:
@@ -73,6 +74,7 @@ def main():
                     bad = load_from_file('bad')
                     discard(girls, good)
                     discard(girls, bad)
+                    print '%d good, %d bad, %d remains' % tuple(map(len, (good, bad, girls)))
                 elif event.key == pygame.K_f:
                     save_to_file('good', good)
                     save_to_file('bad', bad)
